@@ -1,6 +1,10 @@
-from flask import Flask
+import jsonify as jsonify
+from flask import Flask,abort
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
+from dataclass import dataclass
+import requests
+from producer import publish
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URL'] = 'mysql://root:root@db/main'
@@ -9,18 +13,30 @@ CORS(app)
 
 db = SQLAlchemy(app)
 
-class Shop():
+@dataclass
+class Shop(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=False)
     shop_name = db.Column(db.String(200))
     shop_address = db.Column(db.String(200))
-class Order():
+
+
+@dataclass
+class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=False)
     shop = db.Column(db.Integer)
     address = db.Column(db.String(200))
 
-@app.route('/')
+@app.route('/api/shop')
 def index():
-    return 'hello'
+    return jsonify(Shop.query.all())
+
+@app.route('/api/order/<int:id>/deliver_finish', method=['POST'])
+def deliver_finish(id):
+    publish('order_deliverfinished',id)
+
+    return jsonify({
+        'message':'success'
+    })
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
