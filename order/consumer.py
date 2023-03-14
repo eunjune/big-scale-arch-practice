@@ -1,5 +1,5 @@
 import pika
-params = pika.URLParameters('amqps://dphldeck:Ep9eWiO_Im1y0IjeuKFsUwbqLkXPaHLa@dingo.rmq.cloudamqp.com/dphldeck')
+params = pika.URLParameters('')
 
 connection = pika.BlockingConnection(params)
 
@@ -11,7 +11,7 @@ def callback(ch,method,pro,body):
     print('Received in order')
     print(body)
 
-channel.basic_consume(queue='order', on_message_callback=callback)
+channel.basic_consume(queue='order', on_message_callback=callback, auto_ack=True)
 
 print('Started consuming')
 
